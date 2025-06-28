@@ -1,2 +1,5 @@
 pandas
 reportlab
+openpyxl
+matplotlib
+seaborn
