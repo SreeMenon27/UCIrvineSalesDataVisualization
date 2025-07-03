@@ -28,6 +28,12 @@ This project performs a structured analysis of 2 years of e-commerce sales data.
 
 Each level builds on the previous one and is exported as a styled PDF using `ReportLab`.
 
+🧰 Tools & Libraries Used
+pandas – for data manipulation
+matplotlib, seaborn – for data visualization
+reportlab – to build PDF reports
+datetime, os – for utilities
+
 ---
 
 ## 📁 Project Structure
@@ -43,11 +49,3 @@ DataVisualizationAssignment/
 ├── requirements.txt
 └── README.md
 
-🧰 Tools & Libraries Used
-pandas – for data manipulation
-
-matplotlib, seaborn – for data visualization
-
-reportlab – to build PDF reports
-
-datetime, os – for utilities
