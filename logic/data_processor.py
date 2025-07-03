@@ -9,6 +9,19 @@ class DataProcessor:
     def __init__(self,df):
         self.df = df
 
+    def _generate_kpis(self):
+        total_transactions = self.df['Invoice'].nunique()
+        total_revenue = (self.df['Quantity'] * self.df['Price']).sum()
+        avg_revenue = total_revenue / total_transactions if total_transactions else 0
+        unique_customers = self.df['Customer ID'].nunique()
+
+        return {
+            "total_transactions": f"{total_transactions:,}",
+            "total_revenue": f"£{total_revenue:,.2f}",
+            "avg_revenue": f"£{avg_revenue:,.2f}",
+            "unique_customers": f"{unique_customers:,}"
+        }
+
     def _handle_level_1(self, final_count):
         
         # Add Description about the dataset
@@ -40,16 +53,21 @@ class DataProcessor:
 
         # Add 2 interesting fact about data
         num_countries = len(self.df['Country'].unique())
+        top_product = self.df['Description'].value_counts().idxmax()
+        top_country_customers = self.df['Country'].value_counts().idxmax()
 
         data_analysis = {
             "interesting_fact1" : f"The dataset contains {final_count} cleaned transaction records spanning two years, after removing null CustomerIDs, cancellations, and zero-value rows.",
-            "interesting_fact2" : f"There are {num_countries} unique countries in the dataset."
+            "interesting_fact2" : f"There are {num_countries} unique countries in the dataset.",
+            "interesting_fact3": f"The most frequently purchased product is '{top_product}'.",
+            "interesting_fact4": f"The country with the highest number of customers is {top_country_customers}."            
         }
 
         return {"description" : data_desc,
                 "column_descriptions": data_columns,
                 "data_types": data_types,
-                "interesting_facts": data_analysis
+                "interesting_facts": data_analysis,
+                "kpis": self._generate_kpis()
                 }
     
     def _handle_level_2(self):
@@ -67,7 +85,7 @@ class DataProcessor:
 
         # Bar plot
         plt.figure(figsize=(10, 6))
-        palette = sns.color_palette('Oranges_d', n_colors=10)
+        palette = sns.color_palette('crest', n_colors=10)
         ax = sns.barplot(data=country_df, x='Country', y='Revenue', palette=palette, hue='Country', legend=False)
         # Add labels on top of bars
         for p in ax.patches:
@@ -93,10 +111,10 @@ class DataProcessor:
 
         # Set style before plotting
         # Get a color from a seaborn palette
-        palette = sns.color_palette('Oranges_d')  # or 'Blues', 'Purples', etc.
+        palette = sns.color_palette('crest')  # or 'Blues', 'Purples', etc.
         #line_color = palette[10]  # Pick the first color from the palette
         plt.figure(figsize=(12, 6))
-        plt.plot(monthly_revenue.index, monthly_revenue.values, marker='o', linestyle='-', color='#e28743', label="Revenue")
+        plt.plot(monthly_revenue.index, monthly_revenue.values, marker='o', linestyle='-', color='green', label="Revenue")
         # Add data labels
         for x, y in zip(monthly_revenue.index, monthly_revenue.values):
             plt.text(x, y + 1000, f'{y:,.0f}', ha='center', va='bottom', fontsize=8, color='black')
@@ -120,7 +138,7 @@ class DataProcessor:
 
         # Bar plot (horizontal for better label fit)
         plt.figure(figsize=(10, 6))
-        palette = sns.color_palette('Oranges_d', n_colors=10)
+        palette = sns.color_palette('crest', n_colors=10)
         ax = sns.barplot(data=product_df, x='Quantity', y='Product', palette=palette, hue='Product', legend=False)
         # Add labels to end of bars
         for p in ax.patches:
@@ -151,7 +169,7 @@ class DataProcessor:
     
     def _handle_level_3(self):
         if 'Revenue' not in self.df.columns:
-            self.df['Revenue'] = self.df['Quantity'] * self.df['Price']
+            self.df['Revenue'] = self.df['Quantity'] * self.df['Price']        
 
         os.makedirs("assets", exist_ok=True)
         plots = {}
@@ -159,7 +177,7 @@ class DataProcessor:
         # 1. Correlation Heatmap
         corr_df = self.df[['Quantity', 'Price', 'Revenue']].corr()
         plt.figure(figsize=(8, 6))
-        sns.heatmap(corr_df, annot=True, cmap='Oranges', fmt=".2f")
+        sns.heatmap(corr_df, annot=True, fmt=".2f", cmap=sns.color_palette("crest", as_cmap=True))
         plt.title("Correlation Matrix")
         plt.tight_layout()
         path1 = "assets/correlation_heatmap.png"
@@ -171,7 +189,7 @@ class DataProcessor:
         revenue_filtered = self.df[self.df['Revenue'] < self.df['Revenue'].quantile(0.99)]
 
         plt.figure(figsize=(8, 5))
-        sns.kdeplot(revenue_filtered['Revenue'], fill=True, color='#e28743', linewidth=1.5)
+        sns.kdeplot(revenue_filtered['Revenue'], fill=True, color='green', linewidth=1.5)
         plt.title("KDE Plot of Revenue (Filtered - Below 99th Percentile)")
         plt.xlabel("Revenue")
         plt.tight_layout()
@@ -180,53 +198,38 @@ class DataProcessor:
         plt.close()
         plots["revenue_kde_plot"] = path2
 
-        # 3. Scatter Plot (Quantity vs Revenue) with filtering and size/color encoding
-        scatter_df = self.df[(self.df['Quantity'] < self.df['Quantity'].quantile(0.99)) &
-                            (self.df['Revenue'] < self.df['Revenue'].quantile(0.99))]
+
+        # 3. Scatter Plot (Quantity vs Revenue) for Top 5 Revenue Countries
+        top_countries = self.df.groupby('Country')['Revenue'].sum().nlargest(5).index
+        filtered_df = self.df[self.df['Country'].isin(top_countries)]
 
         plt.figure(figsize=(10, 6))
         sns.scatterplot(
-            data=scatter_df,
+            data=filtered_df,
             x="Quantity",
             y="Revenue",
             hue="Country",
-            size="Revenue",
-            sizes=(20, 200),
             alpha=0.6,
-            palette="tab10",  # Or try "Set2", "Dark2" for variation
+            palette="Set2"
         )
-        plt.title("Scatter Plot of Quantity vs Revenue (Filtered)")
+
+
+        plt.title("Quantity vs Revenue – Top 5 Countries by Revenue")
         plt.xlabel("Quantity")
         plt.ylabel("Revenue")
+
+        plt.xlim(0, 5000)
+        plt.ylim(0, 10000)
+
         plt.legend(title="Country", bbox_to_anchor=(1.05, 1), loc='upper left')
         plt.tight_layout()
+
         path3 = "assets/scatter_quantity_revenue.png"
         plt.savefig(path3)
         plt.close()
         plots["scatter_quantity_revenue_plot"] = path3
 
-        # 4. Boxplot of UnitPrice by Country (top 5 countries)
-        top_countries = self.df['Country'].value_counts().head(5).index
-        top_country_df = self.df[self.df['Country'].isin(top_countries)]
 
-        plt.figure(figsize=(10, 6))
-        palette = sns.color_palette("Oranges_d", n_colors=5)  # Match number of countries
-        sns.boxplot(
-            data=top_country_df,
-            x="Country",
-            y="Price",
-            hue="Country",            # <-- This is the fix!
-            palette=palette,
-            legend=False
-        )
-        plt.title("Boxplot of Unit Price by Top 5 Countries")
-        plt.xlabel("Country")
-        plt.ylabel("Unit Price")
-        plt.tight_layout()
-        path4 = "assets/boxplot_unitprice_country.png"
-        plt.savefig(path4)
-        plt.close()
-        plots["price_boxplot_plot"] = path4
 
         return plots
 
