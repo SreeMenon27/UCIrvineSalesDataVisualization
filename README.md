@@ -1,39 +1,53 @@
-# Data Visualization Assignment
+# 📊 Sales Data Analysis – Online Retail II
 
-This project analyzes an online retail dataset to generate multi-level reports with insightful visualizations.
+This mini-project analyzes the **Online Retail II dataset** from the UCI Machine Learning Repository. It automates a 3-level reporting pipeline to generate clean, insightful **PDF reports** with visualizations and KPIs using **Python**.
 
-## Features
+---
 
-- **Level 1:** Basic dataset overview including column descriptions and data types.
-- **Level 2:** Visual analysis with bar plots and line charts showing revenue trends.
-- **Level 3:** Advanced analysis with correlation heatmaps, KDE plots, scatter plots, and boxplots.
+## 🔍 Project Overview
 
-## Installation
+This project performs a structured analysis of 2 years of e-commerce sales data. The analysis is broken into 3 levels:
 
-Make sure you have Python 3.x installed along with required packages:
+### ✅ Level 1 – Basic Data Overview
+- Dataset description
+- Column metadata
+- Data types
+- Key Performance Indicators (KPIs)
+- Interesting facts
+
+### ✅ Level 2 – Visual Analysis
+- Top 10 countries by revenue
+- Monthly revenue trends
+- Top 10 products by quantity sold
+
+### ✅ Level 3 – Advanced Insights
+- Correlation heatmap of key features
+- Revenue distribution (KDE plot)
+- Revenue trends for top 3 countries
+- Top 10 customers by total revenue
+
+Each level builds on the previous one and is exported as a styled PDF using `ReportLab`.
+
+---
+
+## 📁 Project Structure
 
 ```bash
-pip install -r requirements.txt
+DataVisualizationAssignment/
+├── assets/                     # Generated plots and PDFs
+├── logic/
+│   ├── __init__.py
+│   ├── data_processor.py       # Data cleaning and plotting logic
+│   └── report_generator.py     # PDF generation logic
+├── main.py                     # CLI to select analysis level
+├── requirements.txt
+└── README.md
 
-Folder Structure
-/assets          # Contains generated plot images and PDF reports
-/logic           # Core processing and report generation modules
-main.py          # Entry point of the application
-requirements.txt # Python dependencies
-README.md        # Project overview
+🧰 Tools & Libraries Used
+pandas – for data manipulation
 
-Dependencies
-pandas
+matplotlib, seaborn – for data visualization
 
-matplotlib
+reportlab – to build PDF reports
 
-seaborn
-
-reportlab
-
-Notes
-The reports are saved as PDF files in the assets directory.
-
-Level 3 analysis uses enhanced visualizations for deeper insights.
-
-Ensure assets/ folder exists or the program will create it automatically.
+datetime, os – for utilities

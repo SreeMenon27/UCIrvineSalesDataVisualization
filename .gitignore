@@ -1,8 +1,6 @@
 __pycache__/
 *.pyc
 *.xlsx
-*.pdf
-*.png
 .env
 .vscode/
 .idea
